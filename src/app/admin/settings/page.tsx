@@ -1438,7 +1438,7 @@ export default function AdminSettingsPage() {
                   <Label htmlFor="emailAppUrl" className="text-xs font-bold">Application Web URL</Label>
                   <Input
                     id="emailAppUrl"
-                    placeholder="e.g. https://studio-1670844393-18cbb.web.app"
+                    placeholder="e.g. https://ikimina-live-demo.web.app"
                     value={emailAppUrl}
                     onChange={(e) => setEmailAppUrl(e.target.value)}
                     className="h-10 rounded-[10px] bg-muted border-none text-xs"

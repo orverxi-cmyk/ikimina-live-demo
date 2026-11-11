@@ -2,12 +2,13 @@
 // Safe parsing for both Client and Server environments.
 
 const defaultFirebaseConfig = {
-  apiKey: "AIzaSyB1__WmAzyu6jhzmaLDBodmOC_bG9XDNl8",
-  authDomain: "studio-1670844393-18cbb.firebaseapp.com",
-  projectId: "studio-1670844393-18cbb",
-  storageBucket: "studio-1670844393-18cbb.firebasestorage.app",
-  messagingSenderId: "1049365258999",
-  appId: "1:1049365258999:web:79833dc1b3c2f7b86329f2"
+  apiKey: "AIzaSyBWrNelyVXKD3HVqwoahHJFUxOx7YsqANc",
+  authDomain: "ikimina-live-demo.firebaseapp.com",
+  projectId: "ikimina-live-demo",
+  storageBucket: "ikimina-live-demo.firebasestorage.app",
+  messagingSenderId: "116629099254",
+  appId: "1:116629099254:web:60b00c5b1591b1bf5612d7",
+  measurementId: "G-VLWCCJENWQ"
 };
 
 const getFirebaseConfig = () => {

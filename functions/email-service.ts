@@ -35,7 +35,7 @@ export async function getEmailConfig(): Promise<EmailConfig> {
             smtpPass: (data.smtpPass || process.env.SMTP_PASS || '').trim(),
             fromName: (data.fromName || process.env.SMTP_FROM_NAME || 'Ikimina Scheme').trim(),
             fromEmail: (data.fromEmail || process.env.SMTP_FROM_EMAIL || data.smtpUser || process.env.SMTP_USER || 'no-reply@ikimina.rw').trim(),
-            appUrl: (data.appUrl || process.env.APP_URL || 'https://studio-1670844393-18cbb.web.app').trim(),
+            appUrl: (data.appUrl || process.env.APP_URL || 'https://ikimina-live-demo.web.app').trim(),
         };
     } catch (e) {
         console.warn('Failed to load email config from Firestore settings/email:', e);
@@ -47,7 +47,7 @@ export async function getEmailConfig(): Promise<EmailConfig> {
             smtpPass: process.env.SMTP_PASS || '',
             fromName: process.env.SMTP_FROM_NAME || 'Ikimina Scheme',
             fromEmail: process.env.SMTP_FROM_EMAIL || 'no-reply@ikimina.rw',
-            appUrl: process.env.APP_URL || 'https://studio-1670844393-18cbb.web.app',
+            appUrl: process.env.APP_URL || 'https://ikimina-live-demo.web.app',
         };
     }
 }
@@ -262,7 +262,7 @@ export async function generateAndSendActivationEmail(params: {
     const config = await getEmailConfig();
     const branding = await getBrandingDetails();
 
-    const baseUrl = (overrideUrl || config.appUrl || 'https://studio-1670844393-18cbb.web.app').replace(/\/$/, '');
+    const baseUrl = (overrideUrl || config.appUrl || 'https://ikimina-live-demo.web.app').replace(/\/$/, '');
     const actionCodeSettings: admin.auth.ActionCodeSettings = {
         url: `${baseUrl}/login?email=${encodeURIComponent(normalizedEmail)}&mode=set-password`,
         handleCodeInApp: true,

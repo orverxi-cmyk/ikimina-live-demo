@@ -84,7 +84,7 @@ function fetchJson(url, accessToken) {
 }
 
 async function main() {
-  const projectId = 'studio-1670844393-18cbb';
+  const projectId = 'ikimina-live-demo';
   const region = 'us-central1';
 
   console.log(`Authenticating via signed-in Firebase CLI user...`);
