@@ -2164,15 +2164,27 @@ export default function ApprovalsHubPage() {
                             )}
                           </TableCell>
                           <TableCell className="px-4 py-3 text-center">
-                            <Badge className={cn(
-                              "text-[9px] uppercase font-bold border-none",
-                              m.status === 'pending' && "bg-blue-500/10 text-blue-700",
-                              m.status === 'pending_reviewer' && "bg-purple-500/10 text-purple-700",
-                              m.status === 'reviewed' && "bg-amber-500/10 text-amber-700",
-                              m.status === 'active' && "bg-green-600/10 text-green-700"
-                            )}>
-                              {m.status === 'pending' ? (m.passwordSet ? 'Pending Senior Review' : 'Pending Member Confirmation') : m.status === 'pending_reviewer' ? 'Pending Compliance Review' : m.status === 'reviewed' ? 'Pending Admin Activation' : m.status}
-                            </Badge>
+                            {(() => {
+                              const isPrivilegedReadyForAdmin = m.status === 'pending' && Boolean(m.passwordSet) && Boolean(m.role && m.role !== 'member');
+                              const isPendingAdminActivation = m.status === 'reviewed' || isPrivilegedReadyForAdmin;
+                              return (
+                                <Badge className={cn(
+                                  "text-[9px] uppercase font-bold border-none",
+                                  m.status === 'pending' && !isPrivilegedReadyForAdmin && "bg-blue-500/10 text-blue-700",
+                                  m.status === 'pending_reviewer' && "bg-purple-500/10 text-purple-700",
+                                  isPendingAdminActivation && "bg-amber-500/10 text-amber-700",
+                                  m.status === 'active' && "bg-green-600/10 text-green-700"
+                                )}>
+                                  {isPendingAdminActivation
+                                    ? 'Pending Admin Activation'
+                                    : m.status === 'pending'
+                                    ? (m.passwordSet ? 'Pending Senior Review' : 'Pending Member Confirmation')
+                                    : m.status === 'pending_reviewer'
+                                    ? 'Pending Compliance Review'
+                                    : m.status}
+                                </Badge>
+                              );
+                            })()}
                           </TableCell>
                           <TableCell className="px-4 py-3 text-right">
                             <Button asChild size="sm" variant="outline" className="h-8 rounded-xl font-bold text-xs gap-1 border-primary/30 text-primary hover:bg-primary/10">

@@ -1173,13 +1173,17 @@ export const setMemberInitialPassword = onCall({ cors: true }, async (request) =
         // 3. Atomically synchronize Firestore document ID with Firebase Auth UID
         const currentDocId = userDocRef!.id;
         const currentStatus = userData.status || 'pending';
+        const isPrivilegedRole = Boolean(userData.role && userData.role !== 'member');
+        const nextStatus = currentStatus === 'active'
+            ? 'active'
+            : (isPrivilegedRole ? 'reviewed' : currentStatus);
         const batch = db.batch();
 
         if (currentDocId !== authUser.uid) {
             batch.set(db.collection('users').doc(authUser.uid), {
                 ...userData,
                 email: cleanEmail,
-                status: currentStatus,
+                status: nextStatus,
                 passwordSet: true,
                 passwordSetAt: admin.firestore.FieldValue.serverTimestamp(),
                 authUid: authUser.uid
@@ -1195,6 +1199,7 @@ export const setMemberInitialPassword = onCall({ cors: true }, async (request) =
             loans.forEach(l => batch.update(l.ref, { memberId: authUser.uid }));
         } else {
             batch.update(userDocRef!, {
+                status: nextStatus,
                 passwordSet: true,
                 passwordSetAt: admin.firestore.FieldValue.serverTimestamp(),
                 authUid: authUser.uid
@@ -1207,7 +1212,7 @@ export const setMemberInitialPassword = onCall({ cors: true }, async (request) =
             adminId: authUser.uid,
             action: 'SET_INITIAL_PASSWORD',
             justification: 'Member configured account password (awaiting admin activation)',
-            details: { email: cleanEmail, memberId: authUser.uid, status: currentStatus },
+            details: { email: cleanEmail, memberId: authUser.uid, status: nextStatus },
             timestamp: admin.firestore.FieldValue.serverTimestamp()
         });
 
@@ -1216,8 +1221,8 @@ export const setMemberInitialPassword = onCall({ cors: true }, async (request) =
         return {
             success: true,
             uid: authUser.uid,
-            status: currentStatus,
-            isActive: currentStatus === 'active'
+            status: nextStatus,
+            isActive: nextStatus === 'active'
         };
     } catch (error: any) {
         console.error('Error setting initial password:', error);
@@ -1321,7 +1326,12 @@ export const adminActivateMember = onCall({ cors: true }, async (request) => {
 
     const memberData = memberSnap.data()!;
 
-    if (memberData.status !== 'reviewed' && memberData.role !== 'reviewer' && memberData.role !== 'senior_accountant' && memberData.role !== 'auditor') {
+    if (!memberData.passwordSet) {
+        throw new HttpsError('failed-precondition', 'Cannot activate a member account before the member has confirmed their email and set a password.');
+    }
+
+    const isPrivilegedRole = Boolean(memberData.role && memberData.role !== 'member');
+    if (memberData.status !== 'reviewed' && !isPrivilegedRole) {
         throw new HttpsError('failed-precondition', 'Member account must be reviewed by a reviewer before admin activation. Current status: ' + memberData.status);
     }
 
@@ -1428,6 +1438,10 @@ export const reviewMember = onCall({ cors: true }, async (request) => {
     }
 
     const memberData = memberSnap.data()!;
+    if (memberData.role && memberData.role !== 'member') {
+        throw new HttpsError('failed-precondition', 'Privileged role accounts bypass peer review and proceed directly to administrator approval once credentials are confirmed.');
+    }
+
     const isSeniorAcct = callerRole === 'senior_accountant';
 
     if (isSeniorAcct) {

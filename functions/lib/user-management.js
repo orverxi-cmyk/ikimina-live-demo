@@ -1091,9 +1091,13 @@ exports.setMemberInitialPassword = (0, https_1.onCall)({ cors: true }, async (re
         // 3. Atomically synchronize Firestore document ID with Firebase Auth UID
         const currentDocId = userDocRef.id;
         const currentStatus = userData.status || 'pending';
+        const isPrivilegedRole = Boolean(userData.role && userData.role !== 'member');
+        const nextStatus = currentStatus === 'active'
+            ? 'active'
+            : (isPrivilegedRole ? 'reviewed' : currentStatus);
         const batch = db.batch();
         if (currentDocId !== authUser.uid) {
-            batch.set(db.collection('users').doc(authUser.uid), Object.assign(Object.assign({}, userData), { email: cleanEmail, status: currentStatus, passwordSet: true, passwordSetAt: admin.firestore.FieldValue.serverTimestamp(), authUid: authUser.uid }), { merge: true });
+            batch.set(db.collection('users').doc(authUser.uid), Object.assign(Object.assign({}, userData), { email: cleanEmail, status: nextStatus, passwordSet: true, passwordSetAt: admin.firestore.FieldValue.serverTimestamp(), authUid: authUser.uid }), { merge: true });
             batch.delete(userDocRef);
             // Re-point associated records if created under temporary doc ID
             const contribs = await db.collection('contributions').where('memberId', '==', currentDocId).get();
@@ -1103,6 +1107,7 @@ exports.setMemberInitialPassword = (0, https_1.onCall)({ cors: true }, async (re
         }
         else {
             batch.update(userDocRef, {
+                status: nextStatus,
                 passwordSet: true,
                 passwordSetAt: admin.firestore.FieldValue.serverTimestamp(),
                 authUid: authUser.uid
@@ -1114,15 +1119,15 @@ exports.setMemberInitialPassword = (0, https_1.onCall)({ cors: true }, async (re
             adminId: authUser.uid,
             action: 'SET_INITIAL_PASSWORD',
             justification: 'Member configured account password (awaiting admin activation)',
-            details: { email: cleanEmail, memberId: authUser.uid, status: currentStatus },
+            details: { email: cleanEmail, memberId: authUser.uid, status: nextStatus },
             timestamp: admin.firestore.FieldValue.serverTimestamp()
         });
         await batch.commit();
         return {
             success: true,
             uid: authUser.uid,
-            status: currentStatus,
-            isActive: currentStatus === 'active'
+            status: nextStatus,
+            isActive: nextStatus === 'active'
         };
     }
     catch (error) {
@@ -1220,7 +1225,11 @@ exports.adminActivateMember = (0, https_1.onCall)({ cors: true }, async (request
         throw new https_1.HttpsError('not-found', 'Member profile not found.');
     }
     const memberData = memberSnap.data();
-    if (memberData.status !== 'reviewed' && memberData.role !== 'reviewer' && memberData.role !== 'senior_accountant' && memberData.role !== 'auditor') {
+    if (!memberData.passwordSet) {
+        throw new https_1.HttpsError('failed-precondition', 'Cannot activate a member account before the member has confirmed their email and set a password.');
+    }
+    const isPrivilegedRole = Boolean(memberData.role && memberData.role !== 'member');
+    if (memberData.status !== 'reviewed' && !isPrivilegedRole) {
         throw new https_1.HttpsError('failed-precondition', 'Member account must be reviewed by a reviewer before admin activation. Current status: ' + memberData.status);
     }
     try {
@@ -1317,6 +1326,9 @@ exports.reviewMember = (0, https_1.onCall)({ cors: true }, async (request) => {
         throw new https_1.HttpsError('not-found', 'Member profile not found.');
     }
     const memberData = memberSnap.data();
+    if (memberData.role && memberData.role !== 'member') {
+        throw new https_1.HttpsError('failed-precondition', 'Privileged role accounts bypass peer review and proceed directly to administrator approval once credentials are confirmed.');
+    }
     const isSeniorAcct = callerRole === 'senior_accountant';
     if (isSeniorAcct) {
         if (!memberData.passwordSet) {
