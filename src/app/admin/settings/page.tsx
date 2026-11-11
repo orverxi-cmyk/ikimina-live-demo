@@ -79,6 +79,7 @@ export default function AdminSettingsPage() {
 
   const [isUpdating, setIsUpdating] = useState(false);
   const [selectedCurrency, setSelectedCurrency] = useState<string>('RWF');
+  const [loanInterestRate, setLoanInterestRate] = useState<string>('0');
   const [interestModel, setInterestModel] = useState<string>('one-off');
   const [interestType, setInterestType] = useState<string>('immediate');
   const [depositBankName, setDepositBankName] = useState<string>('');
@@ -175,6 +176,9 @@ export default function AdminSettingsPage() {
   useEffect(() => {
     if (settings) {
       if (settings.currency) setSelectedCurrency(settings.currency);
+      if (settings.loanInterestRate !== undefined && settings.loanInterestRate !== null) {
+        setLoanInterestRate(String(settings.loanInterestRate));
+      }
       if (settings.interestModel) setInterestModel(settings.interestModel);
       if (settings.interestType) setInterestType(settings.interestType);
       if (settings.depositBankName !== undefined) setDepositBankName(settings.depositBankName);
@@ -417,7 +421,7 @@ export default function AdminSettingsPage() {
 
     setIsUpdating(true);
     const formData = new FormData(e.currentTarget);
-    const loanInterestRate = Number(formData.get('loanInterestRate'));
+    const loanInterestRateVal = Number(formData.get('loanInterestRate') ?? loanInterestRate);
     const contributionInterestRate = Number(formData.get('contributionInterestRate'));
     const maxLoanPercentage = Number(formData.get('maxLoanPercentage'));
     const maxLendingPoolPercentage = Number(formData.get('maxLendingPoolPercentage')) || 90;
@@ -437,7 +441,7 @@ export default function AdminSettingsPage() {
     try {
       await updateFinancialSettingsAction({ 
         currency: selectedCurrency,
-        loanInterestRate, 
+        loanInterestRate: loanInterestRateVal, 
         interestModel,
         interestType,
         contributionInterestRate, 
@@ -828,7 +832,8 @@ export default function AdminSettingsPage() {
                       type="number" 
                       min="0"
                       step="0.01" 
-                      defaultValue={settings.loanInterestRate ?? 10} 
+                      value={loanInterestRate} 
+                      onChange={(e) => setLoanInterestRate(e.target.value)}
                       required 
                       className="h-11 rounded-[10px] bg-muted border-none"
                     />

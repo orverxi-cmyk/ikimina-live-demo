@@ -79,7 +79,7 @@ export type SystemSettings = {
 
 export const DEFAULT_SETTINGS: SystemSettings = {
   currency: 'RWF',
-  loanInterestRate: 10,
+  loanInterestRate: 0,
   interestModel: 'one-off',
   interestType: 'immediate',
   contributionInterestRate: 50000,
