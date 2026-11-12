@@ -339,6 +339,7 @@ export default function LoginPage() {
         <CardContent className="space-y-4">
           {/* STEP 1: EMAIL LOOKUP */}
           {step === 'email' && (
+            <>
             <form onSubmit={handleCheckEmail} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="email">Email Address</Label>
@@ -373,6 +374,56 @@ export default function LoginPage() {
                 </button>
               </div>
             </form>
+
+            <div className="pt-3 border-t border-border/60 space-y-2.5">
+              <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground text-center">
+                Demo Test Accounts
+              </p>
+              <div className="grid grid-cols-1 gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setEmail('demo.member@ikimina.rw');
+                    setPassword('DemoMember123!');
+                    setStep('password');
+                  }}
+                  className="flex items-center justify-between p-2.5 rounded-xl bg-muted/60 hover:bg-muted border border-border/70 text-left transition-colors"
+                >
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <div className="p-1.5 rounded-lg bg-blue-500/10 text-blue-600 shrink-0">
+                      <User className="h-3.5 w-3.5" />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-xs font-bold text-foreground">Regular Member</p>
+                      <p className="text-[11px] text-muted-foreground font-mono truncate">demo.member@ikimina.rw / DemoMember123!</p>
+                    </div>
+                  </div>
+                  <Badge variant="outline" className="text-[10px] font-bold shrink-0 ml-2">Use</Badge>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setEmail('demo.admin@ikimina.rw');
+                    setPassword('DemoAdmin123!');
+                    setStep('password');
+                  }}
+                  className="flex items-center justify-between p-2.5 rounded-xl bg-muted/60 hover:bg-muted border border-border/70 text-left transition-colors"
+                >
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <div className="p-1.5 rounded-lg bg-emerald-500/10 text-emerald-600 shrink-0">
+                      <ShieldCheck className="h-3.5 w-3.5" />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-xs font-bold text-foreground">Regular Admin</p>
+                      <p className="text-[11px] text-muted-foreground font-mono truncate">demo.admin@ikimina.rw / DemoAdmin123!</p>
+                    </div>
+                  </div>
+                  <Badge variant="outline" className="text-[10px] font-bold shrink-0 ml-2">Use</Badge>
+                </button>
+              </div>
+            </div>
+            </>
           )}
 
           {/* STEP 2: PASSWORD SIGN IN */}
